@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt Maker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Global styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 20px;
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
+  
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+    }
+  
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+  
+    .form-group {
+      margin-bottom: 15px;
+    }
+  
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #555;
+    }
+  
+    .form-group input, .form-group textarea, .form-group button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      outline: none;
+      transition: border 0.3s;
+    }
+  
+    .form-group input:focus {
+      border: 1px solid #4CAF50;
+    }
+  
+    button {
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+  
+    /* Buttons */
+    button#add-item {
+      background: #007bff;
+      color: #fff;
+      border: none;
+    }
+  
+    button#add-item:hover {
+      background: #0056b3;
+    }
+  
+    .button-group button {
+      width: 48%;
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      color: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  
+    .button-group button#generate-receipt {
+      background: #4CAF50;
+    }
+  
+    .button-group button#generate-receipt:hover {
+      background: #45a049;
+    }
+  
+    .button-group button#clear-all {
+      background: #f44336;
+    }
+  
+    .button-group button#clear-all:hover {
+      background: #d32f2f;
+    }
+  
+    #download-receipt {
+      background: #ff9800;
+      color: #fff;
+      border: none;
+      margin-top: 20px;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 5px;
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+  
+    #download-receipt:hover {
+      background: #e68a00;
+    }
+  
+    /* Table styles */
+    #items-table, #receipt-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+  
+    #items-table th, #items-table td, #receipt-table th, #receipt-table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+  
+    #items-table th, #receipt-table th {
+      background-color: #4CAF50;
+      color: #fff;
+    }
+  
+    #items-table td {
+      background: #f9f9f9;
+    }
+  
+    /* Receipt section */
+    #receipt {
+      margin-top: 30px;
+      padding: 20px;
+      border: 2px dashed #4CAF50;
+      border-radius: 10px;
+      background: #e8f5e9;
+      display: none;
+    }
+  
+    #receipt h2 {
+      text-align: center;
+      color: #4CAF50;
+      margin-bottom: 10px;
+    }
+  
+    #receipt p {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+  
+    .total {
+      font-weight: bold;
+      text-align: right;
+      font-size: 1.2rem;
+      color: #333;
+    }
+
+      /* Receipt header styles */
+    #receipt-header {
+     text-align: center;
+     margin-bottom: 20px;
+    }
+
+    #receipt-header img {
+     width: 80px; /* Adjust the size of your logo */
+     height: auto;
+      margin-bottom: 10px;
+    }
+
+    #shop-name {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #333;
+     margin: 0;
+    }
+
+  </style>
+  
+</head>
+<body>
+  <div class="container">
+    <h1>Receipt Maker</h1>
+    <div class="form-group">
+      <label for="customer-name">Customer Name</label>
+      <input type="text" id="customer-name" placeholder="Enter customer name">
+    </div>
+    <div class="form-group">
+      <label for="date-time">Date and Time</label>
+      <input type="text" id="date-time" readonly>
+    </div>
+    <div class="form-group">
+      <label for="item-name">Item Name</label>
+      <input type="text" id="item-name" placeholder="Enter item name">
+    </div>
+    <div class="form-group">
+      <label for="item-quantity">Quantity</label>
+      <input type="number" id="item-quantity" placeholder="Enter quantity">
+    </div>
+    <div class="form-group">
+      <label for="item-price">Price</label>
+      <input type="number" id="item-price" placeholder="Enter price">
+    </div>
+    <button id="add-item">Add Item</button>
+
+    <table id="items-table">
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Total</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="button-group">
+      <button id="generate-receipt">Generate Receipt</button>
+      <button id="clear-all">Clear All</button>
+    </div>
+
+    <div id="receipt">
+      <div id="receipt-header">
+        <img id="logo" src="image/logo.png" alt="Shop Logo">
+        <h2 id="shop-name">Durbar Computer</h2>
+      </div>
+      <h3>Receipt</h3>
+      <p id="customer-details"></p>
+      <table id="receipt-table">
+        <thead>
+          <tr>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="total" id="grand-total"></p>
+      <button id="download-receipt">Download Receipt</button>
+    </div>
+    
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
